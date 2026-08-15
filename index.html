@@ -79,455 +79,539 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 1px #3b82f6;
     }
-    /* Hide bottom nav on desktop */
     @media (min-width: 768px) {
       .bottom-nav { display: none; }
     }
   </style>
 </head>
-<body class="bg-obsidian-950 text-zinc-100 font-sans antialiased min-h-screen flex flex-col selection:bg-blue-500/30 selection:text-blue-200 pb-24 md:pb-12">
+<body class="bg-obsidian-950 text-zinc-100 font-sans antialiased min-h-screen flex flex-col selection:bg-blue-500/30 selection:text-blue-200">
 
   <!-- ==================== TOAST NOTIFICATIONS ==================== -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 md:px-0"></div>
 
-  <!-- ==================== HEADER DESKTOP & MOBILE ==================== -->
-  <header class="sticky top-0 z-40 glass-panel border-b border-obsidian-800/80 px-4 md:px-8 py-3.5 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-        <i class="fa-solid fa-cube text-white text-sm"></i>
-      </div>
-      <div>
-        <h1 class="text-sm font-bold tracking-wider uppercase text-white flex items-center gap-2">
-          LIFE <span class="text-blue-500">OS</span>
-          <span class="text-[10px] py-0.5 px-2 rounded-full bg-zinc-800 text-zinc-400 font-medium border border-zinc-700">v2.4</span>
-        </h1>
-      </div>
+  <!-- ==================== LOADING GLOBAL INITIAL STATE ==================== -->
+  <div id="initial-loader" class="fixed inset-0 z-50 bg-obsidian-950 flex flex-col items-center justify-center gap-4">
+    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center animate-pulse shadow-xl shadow-blue-500/20">
+      <i class="fa-solid fa-cube text-white text-xl"></i>
     </div>
-
-    <!-- Desktop Navigation Tabs -->
-    <nav class="hidden md:flex items-center gap-1 bg-obsidian-900/90 p-1 rounded-xl border border-obsidian-800">
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-obsidian-800 transition-all flex items-center gap-2">
-        <i class="fa-regular fa-calendar-check text-blue-400"></i> Hoje & Rotina
-      </button>
-      <button onclick="switchTab('financas')" id="nav-btn-financas" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-2">
-        <i class="fa-solid fa-chart-line text-emerald-400"></i> Finanças
-      </button>
-      <button onclick="switchTab('projetos')" id="nav-btn-projetos" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-2">
-        <i class="fa-solid fa-layer-group text-purple-400"></i> Projetos
-      </button>
-      <button onclick="switchTab('estudos')" id="nav-btn-estudos" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-2">
-        <i class="fa-solid fa-graduation-cap text-amber-400"></i> Estudos
-      </button>
-    </nav>
-
-    <!-- Status Badge -->
-    <div class="flex items-center gap-3">
-      <div id="connection-status" class="flex items-center gap-2 py-1 px-3 rounded-full bg-emerald-950/40 border border-emerald-800/50 text-emerald-400 text-xs font-medium">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="hidden sm:inline">Supabase Ativo</span>
-      </div>
-      <button onclick="refreshCurrentTab()" title="Atualizar Dados" class="p-2 rounded-lg bg-obsidian-900 border border-obsidian-800 text-zinc-400 hover:text-white hover:bg-obsidian-850 transition">
-        <i id="sync-icon" class="fa-solid fa-rotate text-xs"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-
-    <!-- ==================== TAB 1: HOJE & ROTINA ==================== -->
-    <section id="tab-hoje" class="tab-content space-y-6">
-      <!-- Data Atual Banner -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-obsidian-800">
-        <div>
-          <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <span>Foco Diário</span>
-            <span class="text-xs font-normal px-2.5 py-1 rounded bg-blue-950/60 text-blue-400 border border-blue-800/40">Hoje</span>
-          </h2>
-          <p id="current-date-display" class="text-xs text-zinc-400 mt-0.5 capitalize"></p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Coluna Esquerda: Status de Saúde & Energia -->
-        <div class="lg:col-span-5 space-y-6">
-          <div class="glass-panel p-5 rounded-2xl">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-heart-pulse text-rose-500"></i> Registro de Saúde Diário
-              </h3>
-              <span id="saude-status-badge" class="text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 font-medium">Não salvo hoje</span>
-            </div>
-
-            <form id="form-saude" onsubmit="salvarSaude(event)" class="space-y-4">
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Horas de Sono</label>
-                  <div class="relative">
-                    <input type="number" step="0.5" min="0" max="24" id="saude-sono" placeholder="7.5" class="glass-input w-full px-3 py-2 rounded-xl text-sm pl-9" required />
-                    <i class="fa-solid fa-moon text-zinc-500 absolute left-3 top-3 text-xs"></i>
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Nível de Energia</label>
-                  <select id="saude-energia" class="glass-input w-full px-3 py-2 rounded-xl text-sm" required>
-                    <option value="5">⚡ 5/5 - Máxima</option>
-                    <option value="4">⚡ 4/5 - Alta</option>
-                    <option value="3" selected>⚡ 3/5 - Moderada</option>
-                    <option value="2">⚡ 2/5 - Baixa</option>
-                    <option value="1">⚡ 1/5 - Esgotado</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Treino / Exercício</label>
-                <div class="grid grid-cols-3 gap-2">
-                  <input type="text" id="saude-treino-tipo" placeholder="Ex: Musculação + Cardio" class="glass-input col-span-2 px-3 py-2 rounded-xl text-sm" />
-                  <label class="flex items-center justify-center gap-2 p-2 rounded-xl border border-obsidian-800 bg-obsidian-900 cursor-pointer hover:border-zinc-700 select-none">
-                    <input type="checkbox" id="saude-treino-concluido" class="w-4 h-4 rounded text-blue-600 focus:ring-0 bg-zinc-950 border-zinc-700" />
-                    <span class="text-xs font-semibold text-zinc-300">Feito?</span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Notas de Bem-estar & Biofeedback</label>
-                <textarea id="saude-notas" rows="2" placeholder="Ex: Boa recuperação, alimentação 100% limpa, 3L de água..." class="glass-input w-full px-3 py-2 rounded-xl text-xs resize-none"></textarea>
-              </div>
-
-              <button type="submit" id="btn-save-saude" class="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10">
-                <i class="fa-solid fa-floppy-disk"></i> Salvar Registro do Dia
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Coluna Direita: Prioridades 3x3 -->
-        <div class="lg:col-span-7 space-y-6">
-          <div class="glass-panel p-5 rounded-2xl">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                  <i class="fa-solid fa-bullseye text-blue-400"></i> Matriz de Prioridades do Dia
-                </h3>
-                <p class="text-[11px] text-zinc-400">Direcione sua energia nas tarefas de maior alavancagem.</p>
-              </div>
-              <span id="prioridades-count" class="text-xs px-2.5 py-0.5 rounded-full bg-obsidian-800 border border-obsidian-700 text-zinc-300 font-mono">0/0</span>
-            </div>
-
-            <!-- Adicionar Prioridade -->
-            <form id="form-prioridade" onsubmit="adicionarPrioridade(event)" class="space-y-3 mb-5">
-              <div class="flex flex-col sm:flex-row gap-2">
-                <select id="prioridade-pilar" class="glass-input px-3 py-2 rounded-xl text-xs sm:w-40" required>
-                  <option value="negocios">💼 Negócios</option>
-                  <option value="financas">💰 Finanças</option>
-                  <option value="estudos">🧠 Estudos</option>
-                  <option value="saude">🍎 Saúde</option>
-                  <option value="vida">🌱 Vida / Geral</option>
-                </select>
-                <input type="text" id="prioridade-descricao" placeholder="O que DEVE ser concluído hoje com excelência?" class="glass-input flex-1 px-3 py-2 rounded-xl text-xs" required />
-                <button type="submit" class="py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 border border-zinc-700">
-                  <i class="fa-solid fa-plus text-blue-400"></i> Adicionar
-                </button>
-              </div>
-            </form>
-
-            <!-- Lista de Prioridades -->
-            <div id="lista-prioridades" class="space-y-2">
-              <div class="text-center py-8 text-zinc-500 text-xs">Carregando prioridades...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 2: FINANÇAS & APORTES ==================== -->
-    <section id="tab-financas" class="tab-content hidden space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-obsidian-800">
-        <div>
-          <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <span>Fluxo de Caixa & Aportes</span>
-          </h2>
-          <p class="text-xs text-zinc-400 mt-0.5">Visão consolidada de receitas, saídas e investimentos.</p>
-        </div>
-      </div>
-
-      <!-- Métricas / Cards de Resumo -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-emerald-500">
-          <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase">
-            <span>Receitas Totais</span>
-            <i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>
-          </div>
-          <p id="total-receitas" class="text-xl sm:text-2xl font-bold text-white mt-2">R$ 0,00</p>
-        </div>
-        <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-rose-500">
-          <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase">
-            <span>Despesas</span>
-            <i class="fa-solid fa-arrow-trend-down text-rose-400"></i>
-          </div>
-          <p id="total-despesas" class="text-xl sm:text-2xl font-bold text-white mt-2">R$ 0,00</p>
-        </div>
-        <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-blue-500">
-          <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase">
-            <span>Aportes / Invest.</span>
-            <i class="fa-solid fa-vault text-blue-400"></i>
-          </div>
-          <p id="total-investimentos" class="text-xl sm:text-2xl font-bold text-white mt-2">R$ 0,00</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Formulário de Transação -->
-        <div class="lg:col-span-4 space-y-4">
-          <div class="glass-panel p-5 rounded-2xl">
-            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-plus-circle text-emerald-400"></i> Novo Lançamento
-            </h3>
-            <form id="form-financas" onsubmit="adicionarFinanca(event)" class="space-y-3">
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Tipo de Movimentação</label>
-                <div class="grid grid-cols-3 gap-1 p-1 bg-obsidian-900 rounded-xl border border-obsidian-800">
-                  <label class="text-center py-1.5 rounded-lg text-xs font-medium cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-zinc-400">
-                    <input type="radio" name="tipo_financa" value="receita" class="hidden" checked /> Receita
-                  </label>
-                  <label class="text-center py-1.5 rounded-lg text-xs font-medium cursor-pointer transition has-[:checked]:bg-rose-600 has-[:checked]:text-white text-zinc-400">
-                    <input type="radio" name="tipo_financa" value="despesa" class="hidden" /> Despesa
-                  </label>
-                  <label class="text-center py-1.5 rounded-lg text-xs font-medium cursor-pointer transition has-[:checked]:bg-blue-600 has-[:checked]:text-white text-zinc-400">
-                    <input type="radio" name="tipo_financa" value="investimento" class="hidden" /> Aporte
-                  </label>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Origem</label>
-                  <select id="financa-origem" class="glass-input w-full px-3 py-2 rounded-xl text-xs">
-                    <option value="pessoal">👤 Pessoal</option>
-                    <option value="empresa">🏢 Empresa</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Valor (R$)</label>
-                  <input type="number" step="0.01" id="financa-valor" placeholder="0.00" class="glass-input w-full px-3 py-2 rounded-xl text-xs font-mono font-semibold" required />
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Categoria</label>
-                <input type="text" id="financa-categoria" placeholder="Ex: Dividendos, SaaS, Moradia, Ações..." class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Descrição</label>
-                <input type="text" id="financa-descricao" placeholder="Ex: Pagamento Stripe / Consultoria" class="glass-input w-full px-3 py-2 rounded-xl text-xs" />
-              </div>
-
-              <button type="submit" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 mt-2">
-                <i class="fa-solid fa-check"></i> Registrar Transação
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Tabela / Lista de Transações Recentes -->
-        <div class="lg:col-span-8 space-y-4">
-          <div class="glass-panel p-5 rounded-2xl flex flex-col h-full">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-receipt text-zinc-400"></i> Histórico de Transações
-              </h3>
-            </div>
-            
-            <div class="overflow-x-auto flex-1">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="border-b border-obsidian-800 text-zinc-400 font-semibold uppercase text-[10px]">
-                    <th class="pb-2.5">Data / Descrição</th>
-                    <th class="pb-2.5">Origem / Categoria</th>
-                    <th class="pb-2.5 text-right">Valor</th>
-                    <th class="pb-2.5 text-center w-10">Ação</th>
-                  </tr>
-                </thead>
-                <tbody id="tabela-financas-body" class="divide-y divide-obsidian-800">
-                  <tr>
-                    <td colspan="4" class="text-center py-6 text-zinc-500">Carregando movimentações...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 3: PROJETOS & OPERAÇÕES ==================== -->
-    <section id="tab-projetos" class="tab-content hidden space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-obsidian-800">
-        <div>
-          <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <span>Projetos & Negócios</span>
-          </h2>
-          <p class="text-xs text-zinc-400 mt-0.5">Execução tática de iniciativas estratégicas.</p>
-        </div>
-        <button onclick="toggleModalProjeto(true)" class="self-start sm:self-auto py-2 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-purple-500/10">
-          <i class="fa-solid fa-plus"></i> Novo Projeto
-        </button>
-      </div>
-
-      <!-- Grid de Projetos -->
-      <div id="grid-projetos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="text-center py-12 text-zinc-500 text-xs col-span-full">Carregando projetos...</div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 4: ESTUDOS & EVOLUÇÃO ==================== -->
-    <section id="tab-estudos" class="tab-content hidden space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-obsidian-800">
-        <div>
-          <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <span>Estudos & Evolução Pessoal</span>
-          </h2>
-          <p class="text-xs text-zinc-400 mt-0.5">Acompanhamento contínuo de competências e absorção de conhecimento.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Formulário Adicionar Estudo -->
-        <div class="lg:col-span-4 space-y-4">
-          <div class="glass-panel p-5 rounded-2xl">
-            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-book-open text-amber-400"></i> Novo Tópico de Estudo
-            </h3>
-            <form id="form-estudos" onsubmit="adicionarEstudo(event)" class="space-y-3">
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Tópico / Livro / Curso</label>
-                <input type="text" id="estudo-topico" placeholder="Ex: Arquitetura de Microsserviços / AI Agents" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Categoria</label>
-                  <input type="text" id="estudo-categoria" placeholder="Ex: Tech, Gestão..." class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
-                </div>
-                <div>
-                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Progresso Inicial (%)</label>
-                  <input type="number" id="estudo-progresso" min="0" max="100" value="0" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
-                </div>
-              </div>
-              <div>
-                <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Anotações / Principais Insights</label>
-                <textarea id="estudo-anotacao" rows="3" placeholder="Síntese dos aprendizados fundamentais..." class="glass-input w-full px-3 py-2 rounded-xl text-xs resize-none"></textarea>
-              </div>
-              <button type="submit" class="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-plus"></i> Salvar Tópico
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Lista de Cards de Estudos -->
-        <div class="lg:col-span-8 space-y-4">
-          <div id="lista-estudos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="text-center py-12 text-zinc-500 text-xs col-span-full">Carregando estudos...</div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ==================== MODAL: CRIAR PROJETO ==================== -->
-  <div id="modal-projeto" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="glass-panel w-full max-w-lg rounded-2xl p-6 border border-zinc-700 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-4 border-b border-obsidian-800 pb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-diagram-project text-purple-400"></i> Criar Novo Projeto
-        </h3>
-        <button onclick="toggleModalProjeto(false)" class="text-zinc-400 hover:text-white text-lg">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <form id="form-novo-projeto" onsubmit="adicionarProjeto(event)" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-semibold text-zinc-400 mb-1">Nome do Projeto</label>
-          <input type="text" id="projeto-nome" placeholder="Ex: Lançamento SaaS V2" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-zinc-400 mb-1">Área / Unidade</label>
-            <input type="text" id="projeto-area" placeholder="Ex: Produto, Mkt, Pessoal" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-zinc-400 mb-1">Status</label>
-            <select id="projeto-status" class="glass-input w-full px-3 py-2 rounded-xl text-xs">
-              <option value="planejamento">📋 Planejamento</option>
-              <option value="em_andamento" selected>🚀 Em Andamento</option>
-              <option value="travado">⚠️ Travado</option>
-              <option value="concluido">✅ Concluído</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-xs font-semibold text-zinc-400 mb-1">Prazo Estimado</label>
-            <input type="date" id="projeto-prazo" class="glass-input w-full px-3 py-2 rounded-xl text-xs" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-xs font-semibold text-zinc-400 mb-1">Meta Principal (KPI)</label>
-            <input type="text" id="projeto-meta" placeholder="Ex: $10k MRR ou 500 leads" class="glass-input w-full px-3 py-2 rounded-xl text-xs" />
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-obsidian-800">
-          <button type="button" onclick="toggleModalProjeto(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-obsidian-900 border border-obsidian-800">
-            Cancelar
-          </button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 transition shadow-lg shadow-purple-600/20">
-            Salvar Projeto
-          </button>
-        </div>
-      </form>
+    <div class="flex items-center gap-2 text-zinc-400 text-xs font-medium">
+      <i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>
+      <span>Inicializando LIFE OS...</span>
     </div>
   </div>
 
-  <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-obsidian-800 px-3 py-2">
-    <div class="grid grid-cols-4 gap-1 max-w-md mx-auto">
-      <button onclick="switchTab('hoje')" id="mob-nav-hoje" class="flex flex-col items-center justify-center py-1 text-blue-500">
-        <i class="fa-regular fa-calendar-check text-lg"></i>
-        <span class="text-[10px] font-semibold mt-1">Hoje</span>
-      </button>
-      <button onclick="switchTab('financas')" id="mob-nav-financas" class="flex flex-col items-center justify-center py-1 text-zinc-400">
-        <i class="fa-solid fa-chart-line text-lg"></i>
-        <span class="text-[10px] font-medium mt-1">Finanças</span>
-      </button>
-      <button onclick="switchTab('projetos')" id="mob-nav-projetos" class="flex flex-col items-center justify-center py-1 text-zinc-400">
-        <i class="fa-solid fa-layer-group text-lg"></i>
-        <span class="text-[10px] font-medium mt-1">Projetos</span>
-      </button>
-      <button onclick="switchTab('estudos')" id="mob-nav-estudos" class="flex flex-col items-center justify-center py-1 text-zinc-400">
-        <i class="fa-solid fa-graduation-cap text-lg"></i>
-        <span class="text-[10px] font-medium mt-1">Estudos</span>
-      </button>
+  <!-- ==================== AUTHENTICATION VIEW (LOGIN / SIGNUP) ==================== -->
+  <div id="auth-view" class="fixed inset-0 z-40 bg-obsidian-950 flex items-center justify-center p-4 hidden">
+    <!-- Glow Background Elements -->
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl border border-zinc-800 shadow-2xl relative">
+      <!-- Header do Auth -->
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-cube text-white text-lg"></i>
+        </div>
+        <h2 class="text-xl font-extrabold tracking-tight text-white">LIFE <span class="text-blue-500">OS</span></h2>
+        <p class="text-xs text-zinc-400 mt-1" id="auth-subtitle">Entre com suas credenciais para acessar seu sistema.</p>
+      </div>
+
+      <!-- Toggle Mode: Login vs Registro -->
+      <div class="flex p-1 bg-obsidian-900 rounded-xl border border-obsidian-800 mb-5">
+        <button type="button" onclick="setAuthMode('login')" id="btn-tab-login" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-obsidian-800 text-white transition">
+          Fazer Login
+        </button>
+        <button type="button" onclick="setAuthMode('register')" id="btn-tab-register" class="flex-1 py-1.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition">
+          Criar Conta
+        </button>
+      </div>
+
+      <!-- Auth Error Alert Box -->
+      <div id="auth-error-box" class="hidden mb-4 p-3 rounded-xl bg-rose-950/60 border border-rose-800/50 text-rose-300 text-xs flex items-start gap-2.5">
+        <i class="fa-solid fa-triangle-exclamation text-rose-400 mt-0.5"></i>
+        <span id="auth-error-msg" class="flex-1"></span>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">E-mail</label>
+          <div class="relative">
+            <input type="email" id="auth-email" placeholder="seu@email.com" class="glass-input w-full px-3 py-2.5 rounded-xl text-sm pl-9" required />
+            <i class="fa-regular fa-envelope text-zinc-500 absolute left-3 top-3.5 text-xs"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Senha</label>
+          <div class="relative">
+            <input type="password" id="auth-password" placeholder="••••••••" minlength="6" class="glass-input w-full px-3 py-2.5 rounded-xl text-sm pl-9" required />
+            <i class="fa-solid fa-lock text-zinc-500 absolute left-3 top-3.5 text-xs"></i>
+          </div>
+          <p class="text-[10px] text-zinc-500 mt-1 hidden" id="auth-password-hint">Mínimo de 6 caracteres.</p>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
+          <span id="auth-submit-text">Acessar Plataforma</span>
+          <i id="auth-spinner" class="fa-solid fa-circle-notch fa-spin text-xs hidden"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-obsidian-800 text-center">
+        <span class="text-[11px] text-zinc-500">LIFE OS Enterprise Architecture • Supabase Auth</span>
+      </div>
     </div>
-  </nav>
+  </div>
+
+  <!-- ==================== MAIN DASHBOARD APPLICATION VIEW ==================== -->
+  <div id="app-view" class="hidden flex-1 flex flex-col pb-24 md:pb-12">
+    
+    <!-- HEADER -->
+    <header class="sticky top-0 z-30 glass-panel border-b border-obsidian-800/80 px-4 md:px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-cube text-white text-sm"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold tracking-wider uppercase text-white flex items-center gap-2">
+            LIFE <span class="text-blue-500">OS</span>
+            <span class="text-[10px] py-0.5 px-2 rounded-full bg-zinc-800 text-zinc-400 font-medium border border-zinc-700">v2.5</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-obsidian-900/90 p-1 rounded-xl border border-obsidian-800">
+        <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-obsidian-800 transition-all flex items-center gap-2">
+          <i class="fa-regular fa-calendar-check text-blue-400"></i> Hoje & Rotina
+        </button>
+        <button onclick="switchTab('financas')" id="nav-btn-financas" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-2">
+          <i class="fa-solid fa-chart-line text-emerald-400"></i> Finanças
+        </button>
+        <button onclick="switchTab('projetos')" id="nav-btn-projetos" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-2">
+          <i class="fa-solid fa-layer-group text-purple-400"></i> Projetos
+        </button>
+        <button onclick="switchTab('estudos')" id="nav-btn-estudos" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-2">
+          <i class="fa-solid fa-graduation-cap text-amber-400"></i> Estudos
+        </button>
+      </nav>
+
+      <!-- User & Sync Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- User Badge Chip -->
+        <div class="flex items-center gap-2 py-1 px-2.5 rounded-full bg-obsidian-900 border border-obsidian-800 text-zinc-300 text-xs max-w-[140px] sm:max-w-[200px] truncate" title="Usuário Ativo">
+          <i class="fa-regular fa-user text-blue-400 text-[11px]"></i>
+          <span id="user-email-display" class="truncate text-[11px] font-medium">carregando...</span>
+        </div>
+
+        <button onclick="refreshCurrentTab()" title="Atualizar Dados" class="p-2 rounded-xl bg-obsidian-900 border border-obsidian-800 text-zinc-400 hover:text-white hover:bg-obsidian-850 transition">
+          <i id="sync-icon" class="fa-solid fa-rotate text-xs"></i>
+        </button>
+
+        <button onclick="handleLogout()" title="Sair da Conta" class="p-2 px-2.5 rounded-xl bg-rose-950/40 border border-rose-900/50 text-rose-400 hover:bg-rose-900/50 hover:text-rose-200 transition flex items-center gap-1.5 text-xs font-semibold">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span class="hidden sm:inline">Sair</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN BODY CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+      <!-- ==================== TAB 1: HOJE & ROTINA ==================== -->
+      <section id="tab-hoje" class="tab-content space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-obsidian-800">
+          <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+              <span>Foco Diário</span>
+              <span class="text-xs font-normal px-2.5 py-1 rounded bg-blue-950/60 text-blue-400 border border-blue-800/40">Hoje</span>
+            </h2>
+            <p id="current-date-display" class="text-xs text-zinc-400 mt-0.5 capitalize"></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Coluna Esquerda: Status de Saúde -->
+          <div class="lg:col-span-5 space-y-6">
+            <div class="glass-panel p-5 rounded-2xl">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-heart-pulse text-rose-500"></i> Registro de Saúde Diário
+                </h3>
+                <span id="saude-status-badge" class="text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 font-medium">Carregando...</span>
+              </div>
+
+              <form id="form-saude" onsubmit="salvarSaude(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Horas de Sono</label>
+                    <div class="relative">
+                      <input type="number" step="0.5" min="0" max="24" id="saude-sono" placeholder="7.5" class="glass-input w-full px-3 py-2 rounded-xl text-sm pl-9" required />
+                      <i class="fa-solid fa-moon text-zinc-500 absolute left-3 top-3 text-xs"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Nível de Energia</label>
+                    <select id="saude-energia" class="glass-input w-full px-3 py-2 rounded-xl text-sm" required>
+                      <option value="5">⚡ 5/5 - Máxima</option>
+                      <option value="4">⚡ 4/5 - Alta</option>
+                      <option value="3" selected>⚡ 3/5 - Moderada</option>
+                      <option value="2">⚡ 2/5 - Baixa</option>
+                      <option value="1">⚡ 1/5 - Esgotado</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Treino / Exercício</label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <input type="text" id="saude-treino-tipo" placeholder="Ex: Musculação + Cardio" class="glass-input col-span-2 px-3 py-2 rounded-xl text-sm" />
+                    <label class="flex items-center justify-center gap-2 p-2 rounded-xl border border-obsidian-800 bg-obsidian-900 cursor-pointer hover:border-zinc-700 select-none">
+                      <input type="checkbox" id="saude-treino-concluido" class="w-4 h-4 rounded text-blue-600 focus:ring-0 bg-zinc-950 border-zinc-700" />
+                      <span class="text-xs font-semibold text-zinc-300">Feito?</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Notas de Bem-estar & Biofeedback</label>
+                  <textarea id="saude-notas" rows="2" placeholder="Ex: Boa recuperação, nutrição limpa, 3L água..." class="glass-input w-full px-3 py-2 rounded-xl text-xs resize-none"></textarea>
+                </div>
+
+                <button type="submit" id="btn-save-saude" class="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10">
+                  <i class="fa-solid fa-floppy-disk"></i> Salvar Registro do Dia
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Prioridades 3x3 -->
+          <div class="lg:col-span-7 space-y-6">
+            <div class="glass-panel p-5 rounded-2xl">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-blue-400"></i> Matriz de Prioridades
+                  </h3>
+                  <p class="text-[11px] text-zinc-400">Tarefas de alta alavancagem para o dia.</p>
+                </div>
+                <span id="prioridades-count" class="text-xs px-2.5 py-0.5 rounded-full bg-obsidian-800 border border-obsidian-700 text-zinc-300 font-mono">0/0</span>
+              </div>
+
+              <!-- Adicionar Prioridade -->
+              <form id="form-prioridade" onsubmit="adicionarPrioridade(event)" class="space-y-3 mb-5">
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <select id="prioridade-pilar" class="glass-input px-3 py-2 rounded-xl text-xs sm:w-40" required>
+                    <option value="negocios">💼 Negócios</option>
+                    <option value="financas">💰 Finanças</option>
+                    <option value="estudos">🧠 Estudos</option>
+                    <option value="saude">🍎 Saúde</option>
+                    <option value="vida">🌱 Vida / Geral</option>
+                  </select>
+                  <input type="text" id="prioridade-descricao" placeholder="O que DEVE ser concluído hoje com excelência?" class="glass-input flex-1 px-3 py-2 rounded-xl text-xs" required />
+                  <button type="submit" class="py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 border border-zinc-700">
+                    <i class="fa-solid fa-plus text-blue-400"></i> Adicionar
+                  </button>
+                </div>
+              </form>
+
+              <!-- Lista de Prioridades -->
+              <div id="lista-prioridades" class="space-y-2">
+                <div class="text-center py-8 text-zinc-500 text-xs">Carregando prioridades...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: FINANÇAS & APORTES ==================== -->
+      <section id="tab-financas" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-obsidian-800">
+          <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+              <span>Fluxo de Caixa & Aportes</span>
+            </h2>
+            <p class="text-xs text-zinc-400 mt-0.5">Visão de receitas, despesas e aportes estratégicos.</p>
+          </div>
+        </div>
+
+        <!-- Cards de Resumo -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-emerald-500">
+            <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase">
+              <span>Receitas Totais</span>
+              <i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>
+            </div>
+            <p id="total-receitas" class="text-xl sm:text-2xl font-bold text-white mt-2">R$ 0,00</p>
+          </div>
+          <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-rose-500">
+            <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase">
+              <span>Despesas Totais</span>
+              <i class="fa-solid fa-arrow-trend-down text-rose-400"></i>
+            </div>
+            <p id="total-despesas" class="text-xl sm:text-2xl font-bold text-white mt-2">R$ 0,00</p>
+          </div>
+          <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-blue-500">
+            <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase">
+              <span>Aportes / Invest.</span>
+              <i class="fa-solid fa-vault text-blue-400"></i>
+            </div>
+            <p id="total-investimentos" class="text-xl sm:text-2xl font-bold text-white mt-2">R$ 0,00</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Formulário de Transação -->
+          <div class="lg:col-span-4 space-y-4">
+            <div class="glass-panel p-5 rounded-2xl">
+              <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle text-emerald-400"></i> Novo Lançamento
+              </h3>
+              <form id="form-financas" onsubmit="adicionarFinanca(event)" class="space-y-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Tipo de Movimentação</label>
+                  <div class="grid grid-cols-3 gap-1 p-1 bg-obsidian-900 rounded-xl border border-obsidian-800">
+                    <label class="text-center py-1.5 rounded-lg text-xs font-medium cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-zinc-400">
+                      <input type="radio" name="tipo_financa" value="receita" class="hidden" checked /> Receita
+                    </label>
+                    <label class="text-center py-1.5 rounded-lg text-xs font-medium cursor-pointer transition has-[:checked]:bg-rose-600 has-[:checked]:text-white text-zinc-400">
+                      <input type="radio" name="tipo_financa" value="despesa" class="hidden" /> Despesa
+                    </label>
+                    <label class="text-center py-1.5 rounded-lg text-xs font-medium cursor-pointer transition has-[:checked]:bg-blue-600 has-[:checked]:text-white text-zinc-400">
+                      <input type="radio" name="tipo_financa" value="investimento" class="hidden" /> Aporte
+                    </label>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Origem</label>
+                    <select id="financa-origem" class="glass-input w-full px-3 py-2 rounded-xl text-xs">
+                      <option value="pessoal">👤 Pessoal</option>
+                      <option value="empresa">🏢 Empresa</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Valor (R$)</label>
+                    <input type="number" step="0.01" id="financa-valor" placeholder="0.00" class="glass-input w-full px-3 py-2 rounded-xl text-xs font-mono font-semibold" required />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Categoria</label>
+                  <input type="text" id="financa-categoria" placeholder="Ex: Dividendos, SaaS, Moradia..." class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Descrição</label>
+                  <input type="text" id="financa-descricao" placeholder="Ex: Pagamento Stripe / Consultoria" class="glass-input w-full px-3 py-2 rounded-xl text-xs" />
+                </div>
+
+                <button type="submit" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 mt-2">
+                  <i class="fa-solid fa-check"></i> Registrar Transação
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Tabela de Histórico -->
+          <div class="lg:col-span-8 space-y-4">
+            <div class="glass-panel p-5 rounded-2xl flex flex-col h-full">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-receipt text-zinc-400"></i> Histórico de Transações
+                </h3>
+              </div>
+              
+              <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="border-b border-obsidian-800 text-zinc-400 font-semibold uppercase text-[10px]">
+                      <th class="pb-2.5">Data / Descrição</th>
+                      <th class="pb-2.5">Origem / Categoria</th>
+                      <th class="pb-2.5 text-right">Valor</th>
+                      <th class="pb-2.5 text-center w-10">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabela-financas-body" class="divide-y divide-obsidian-800">
+                    <tr>
+                      <td colspan="4" class="text-center py-6 text-zinc-500">Carregando movimentações...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: PROJETOS & OPERAÇÕES ==================== -->
+      <section id="tab-projetos" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-obsidian-800">
+          <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+              <span>Projetos & Negócios</span>
+            </h2>
+            <p class="text-xs text-zinc-400 mt-0.5">Iniciativas e entregas de alto impacto.</p>
+          </div>
+          <button onclick="toggleModalProjeto(true)" class="self-start sm:self-auto py-2 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-purple-500/10">
+            <i class="fa-solid fa-plus"></i> Novo Projeto
+          </button>
+        </div>
+
+        <div id="grid-projetos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="text-center py-12 text-zinc-500 text-xs col-span-full">Carregando projetos...</div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 4: ESTUDOS & EVOLUÇÃO ==================== -->
+      <section id="tab-estudos" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-obsidian-800">
+          <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+              <span>Estudos & Evolução Pessoal</span>
+            </h2>
+            <p class="text-xs text-zinc-400 mt-0.5">Acompanhamento contínuo de competências e leitura.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Formulário Adicionar Estudo -->
+          <div class="lg:col-span-4 space-y-4">
+            <div class="glass-panel p-5 rounded-2xl">
+              <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-amber-400"></i> Novo Tópico de Estudo
+              </h3>
+              <form id="form-estudos" onsubmit="adicionarEstudo(event)" class="space-y-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Tópico / Livro / Curso</label>
+                  <input type="text" id="estudo-topico" placeholder="Ex: Engenharia de Prompts / Finanças" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Categoria</label>
+                    <input type="text" id="estudo-categoria" placeholder="Ex: Tech, Gestão..." class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Progresso Inicial (%)</label>
+                    <input type="number" id="estudo-progresso" min="0" max="100" value="0" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-zinc-400 uppercase mb-1">Anotações / Síntese</label>
+                  <textarea id="estudo-anotacao" rows="3" placeholder="Insights essenciais e referências..." class="glass-input w-full px-3 py-2 rounded-xl text-xs resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-plus"></i> Salvar Tópico
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Lista de Estudos -->
+          <div class="lg:col-span-8 space-y-4">
+            <div id="lista-estudos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="text-center py-12 text-zinc-500 text-xs col-span-full">Carregando estudos...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ==================== MODAL: CRIAR PROJETO ==================== -->
+    <div id="modal-projeto" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="glass-panel w-full max-w-lg rounded-2xl p-6 border border-zinc-700 shadow-2xl relative">
+        <div class="flex items-center justify-between mb-4 border-b border-obsidian-800 pb-3">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-purple-400"></i> Criar Novo Projeto
+          </h3>
+          <button onclick="toggleModalProjeto(false)" class="text-zinc-400 hover:text-white text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="form-novo-projeto" onsubmit="adicionarProjeto(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Nome do Projeto</label>
+            <input type="text" id="projeto-nome" placeholder="Ex: Lançamento de Produto" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Área / Unidade</label>
+              <input type="text" id="projeto-area" placeholder="Ex: Produto, Mkt, Pessoal" class="glass-input w-full px-3 py-2 rounded-xl text-xs" required />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Status</label>
+              <select id="projeto-status" class="glass-input w-full px-3 py-2 rounded-xl text-xs">
+                <option value="planejamento">📋 Planejamento</option>
+                <option value="em_andamento" selected>🚀 Em Andamento</option>
+                <option value="travado">⚠️ Travado</option>
+                <option value="concluido">✅ Concluído</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Prazo Estimado</label>
+              <input type="date" id="projeto-prazo" class="glass-input w-full px-3 py-2 rounded-xl text-xs" />
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Meta Principal (KPI)</label>
+              <input type="text" id="projeto-meta" placeholder="Ex: $10k MRR" class="glass-input w-full px-3 py-2 rounded-xl text-xs" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-obsidian-800">
+            <button type="button" onclick="toggleModalProjeto(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-obsidian-900 border border-obsidian-800">
+              Cancelar
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 transition shadow-lg shadow-purple-600/20">
+              Salvar Projeto
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-obsidian-800 px-3 py-2">
+      <div class="grid grid-cols-4 gap-1 max-w-md mx-auto">
+        <button onclick="switchTab('hoje')" id="mob-nav-hoje" class="flex flex-col items-center justify-center py-1 text-blue-500">
+          <i class="fa-regular fa-calendar-check text-lg"></i>
+          <span class="text-[10px] font-semibold mt-1">Hoje</span>
+        </button>
+        <button onclick="switchTab('financas')" id="mob-nav-financas" class="flex flex-col items-center justify-center py-1 text-zinc-400">
+          <i class="fa-solid fa-chart-line text-lg"></i>
+          <span class="text-[10px] font-medium mt-1">Finanças</span>
+        </button>
+        <button onclick="switchTab('projetos')" id="mob-nav-projetos" class="flex flex-col items-center justify-center py-1 text-zinc-400">
+          <i class="fa-solid fa-layer-group text-lg"></i>
+          <span class="text-[10px] font-medium mt-1">Projetos</span>
+        </button>
+        <button onclick="switchTab('estudos')" id="mob-nav-estudos" class="flex flex-col items-center justify-center py-1 text-zinc-400">
+          <i class="fa-solid fa-graduation-cap text-lg"></i>
+          <span class="text-[10px] font-medium mt-1">Estudos</span>
+        </button>
+      </div>
+    </nav>
+  </div>
 
   <!-- ==================== SUPABASE LOGIC & APP ENGINE ==================== -->
   <script>
-    // 1. SUPABASE CLIENT INITIALIZATION
+    // 1. SUPABASE CLIENT & STATE
     const SUPABASE_URL = "https://grsjmqsrvywxmncijbsj.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyc2ptcXNydnl3eG1uY2lqYnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzIwMDMsImV4cCI6MjEwMjMwODAwM30.dEyk9ojUWijsU018wPD1V8eanQTRKpajWstAQc6c3jw";
     
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let currentUser = null;
+    let authMode = 'login'; // 'login' | 'register'
     let activeTab = 'hoje';
     let currentSaudeId = null;
 
-    // 2. HELPER FUNCTIONS & UI FEEDBACK
+    // 2. TOAST SYSTEM
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -567,11 +651,117 @@
       return new Date().toISOString().split('T')[0];
     }
 
-    // Tab Navigation Logic
+    // 3. AUTHENTICATION CONTROLLER
+    function setAuthMode(mode) {
+      authMode = mode;
+      const btnLogin = document.getElementById('btn-tab-login');
+      const btnRegister = document.getElementById('btn-tab-register');
+      const submitText = document.getElementById('auth-submit-text');
+      const subtitle = document.getElementById('auth-subtitle');
+      const pwdHint = document.getElementById('auth-password-hint');
+      const errorBox = document.getElementById('auth-error-box');
+      errorBox.classList.add('hidden');
+
+      if (mode === 'login') {
+        btnLogin.className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg bg-obsidian-800 text-white transition';
+        btnRegister.className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition';
+        submitText.innerText = 'Acessar Plataforma';
+        subtitle.innerText = 'Entre com suas credenciais para acessar seu sistema.';
+        pwdHint.classList.add('hidden');
+      } else {
+        btnRegister.className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg bg-obsidian-800 text-white transition';
+        btnLogin.className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition';
+        submitText.innerText = 'Criar Nova Conta';
+        subtitle.innerText = 'Crie seu acesso privado ao LIFE OS.';
+        pwdHint.classList.remove('hidden');
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const spinner = document.getElementById('auth-spinner');
+      const submitText = document.getElementById('auth-submit-text');
+      const errorBox = document.getElementById('auth-error-box');
+      const errorMsg = document.getElementById('auth-error-msg');
+
+      errorBox.classList.add('hidden');
+      submitBtn.disabled = true;
+      spinner.classList.remove('hidden');
+      submitText.classList.add('opacity-50');
+
+      try {
+        if (authMode === 'login') {
+          const { data, error } = await db.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          showToast('Login realizado com sucesso!');
+        } else {
+          const { data, error } = await db.auth.signUp({ email, password });
+          if (error) throw error;
+          if (data?.user && (!data.session)) {
+            showToast('Conta criada! Verifique seu e-mail para confirmar a conta.', 'info');
+          } else {
+            showToast('Conta criada com sucesso e autenticada!');
+          }
+        }
+      } catch (err) {
+        errorBox.classList.remove('hidden');
+        errorMsg.innerText = err.message || 'Erro ao autenticar. Tente novamente.';
+      } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('hidden');
+        submitText.classList.remove('opacity-50');
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        const { error } = await db.auth.signOut();
+        if (error) throw error;
+        showToast('Sessão encerrada com sucesso.', 'info');
+      } catch (err) {
+        showToast(`Erro ao sair: ${err.message}`, 'error');
+      }
+    }
+
+    // 4. SESSION & APP LIFECYCLE
+    function setupAuthListener() {
+      // Monitora o estado de autenticação
+      db.auth.onAuthStateChange((event, session) => {
+        handleSessionUpdate(session);
+      });
+
+      // Checagem inicial
+      db.auth.getSession().then(({ data: { session } }) => {
+        handleSessionUpdate(session);
+      });
+    }
+
+    function handleSessionUpdate(session) {
+      const initialLoader = document.getElementById('initial-loader');
+      const authView = document.getElementById('auth-view');
+      const appView = document.getElementById('app-view');
+
+      if (initialLoader) initialLoader.classList.add('hidden');
+
+      if (session && session.user) {
+        currentUser = session.user;
+        document.getElementById('user-email-display').innerText = currentUser.email;
+        authView.classList.add('hidden');
+        appView.classList.remove('hidden');
+        refreshCurrentTab();
+      } else {
+        currentUser = null;
+        appView.classList.add('hidden');
+        authView.classList.remove('hidden');
+      }
+    }
+
+    // 5. TAB NAVIGATION
     function switchTab(tab) {
       activeTab = tab;
-      
-      // Toggle Tab Views
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       const activeContent = document.getElementById(`tab-${tab}`);
       if (activeContent) activeContent.classList.remove('hidden');
@@ -602,6 +792,7 @@
     }
 
     function refreshCurrentTab() {
+      if (!currentUser) return;
       const syncIcon = document.getElementById('sync-icon');
       if (syncIcon) syncIcon.classList.add('fa-spin');
 
@@ -623,8 +814,9 @@
       });
     }
 
-    // ==================== 3. MÓDULO: HOJE & ROTINA ====================
+    // ==================== MÓDULO 1: HOJE & ROTINA ====================
     async function carregarSaudeHoje() {
+      if (!currentUser) return;
       const today = getTodayDateString();
       try {
         const { data, error } = await db
@@ -647,6 +839,7 @@
           badge.className = "text-[11px] px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 font-medium border border-emerald-800/40";
         } else {
           currentSaudeId = null;
+          document.getElementById('form-saude').reset();
           badge.innerText = "Pendente Hoje";
           badge.className = "text-[11px] px-2 py-0.5 rounded bg-amber-950/60 text-amber-400 font-medium border border-amber-800/40";
         }
@@ -657,6 +850,7 @@
 
     async function salvarSaude(e) {
       e.preventDefault();
+      if (!currentUser) return;
       const today = getTodayDateString();
       const payload = {
         data: today,
@@ -664,7 +858,8 @@
         energia_nivel: parseInt(document.getElementById('saude-energia').value) || 3,
         treino_tipo: document.getElementById('saude-treino-tipo').value,
         treino_concluido: document.getElementById('saude-treino-concluido').checked,
-        notas: document.getElementById('saude-notas').value
+        notas: document.getElementById('saude-notas').value,
+        user_id: currentUser.id
       };
 
       try {
@@ -678,7 +873,7 @@
         }
 
         if (error) throw error;
-        showToast('Saúde e biofeedback salvos com sucesso!');
+        showToast('Saúde e biofeedback salvos!');
         carregarSaudeHoje();
       } catch (err) {
         showToast(`Erro ao salvar saúde: ${err.message}`, 'error');
@@ -686,6 +881,7 @@
     }
 
     async function carregarPrioridades() {
+      if (!currentUser) return;
       const listContainer = document.getElementById('lista-prioridades');
       const countEl = document.getElementById('prioridades-count');
       try {
@@ -746,6 +942,7 @@
 
     async function adicionarPrioridade(e) {
       e.preventDefault();
+      if (!currentUser) return;
       const pilar = document.getElementById('prioridade-pilar').value;
       const descricao = document.getElementById('prioridade-descricao').value.trim();
 
@@ -756,13 +953,14 @@
           pilar,
           descricao,
           concluido: false,
-          data: getTodayDateString()
+          data: getTodayDateString(),
+          user_id: currentUser.id
         }]);
 
         if (error) throw error;
 
         document.getElementById('prioridade-descricao').value = '';
-        showToast('Prioridade adicionada com sucesso!');
+        showToast('Prioridade adicionada!');
         carregarPrioridades();
       } catch (err) {
         showToast(`Erro ao adicionar prioridade: ${err.message}`, 'error');
@@ -790,8 +988,9 @@
       }
     }
 
-    // ==================== 4. MÓDULO: FINANÇAS & APORTES ====================
+    // ==================== MÓDULO 2: FINANÇAS & APORTES ====================
     async function carregarFinancas() {
+      if (!currentUser) return;
       const tableBody = document.getElementById('tabela-financas-body');
       try {
         const { data, error } = await db
@@ -853,7 +1052,7 @@
             `;
           }).join('');
         } else {
-          tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-zinc-500">Nenhuma movimentação cadastrada.</td></tr>`;
+          tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-zinc-500">Nenhuma movimentação registrada.</td></tr>`;
         }
 
         document.getElementById('total-receitas').innerText = formatBRL(totReceitas);
@@ -867,6 +1066,7 @@
 
     async function adicionarFinanca(e) {
       e.preventDefault();
+      if (!currentUser) return;
       const tipo = document.querySelector('input[name="tipo_financa"]:checked').value;
       const origem = document.getElementById('financa-origem').value;
       const valor = parseFloat(document.getElementById('financa-valor').value);
@@ -882,7 +1082,8 @@
           valor,
           categoria,
           descricao,
-          data: getTodayDateString()
+          data: getTodayDateString(),
+          user_id: currentUser.id
         }]);
 
         if (error) throw error;
@@ -891,7 +1092,7 @@
         document.getElementById('financa-categoria').value = '';
         document.getElementById('financa-descricao').value = '';
 
-        showToast('Movimentação registrada com sucesso!');
+        showToast('Transação registrada com sucesso!');
         carregarFinancas();
       } catch (err) {
         showToast(`Erro ao salvar finança: ${err.message}`, 'error');
@@ -909,7 +1110,7 @@
       }
     }
 
-    // ==================== 5. MÓDULO: PROJETOS & OPERAÇÕES ====================
+    // ==================== MÓDULO 3: PROJETOS & OPERAÇÕES ====================
     function toggleModalProjeto(show) {
       const modal = document.getElementById('modal-projeto');
       if (show) modal.classList.remove('hidden');
@@ -917,6 +1118,7 @@
     }
 
     async function carregarProjetos() {
+      if (!currentUser) return;
       const grid = document.getElementById('grid-projetos');
       try {
         const { data, error } = await db
@@ -929,7 +1131,7 @@
         if (!data || data.length === 0) {
           grid.innerHTML = `
             <div class="col-span-full text-center py-12 text-zinc-500 text-xs border border-dashed border-obsidian-800 rounded-2xl">
-              Nenhum projeto ativo no momento. Crie seu primeiro projeto acima.
+              Nenhum projeto registrado. Crie sua primeira iniciativa acima.
             </div>
           `;
           return;
@@ -983,6 +1185,7 @@
 
     async function adicionarProjeto(e) {
       e.preventDefault();
+      if (!currentUser) return;
       const nome = document.getElementById('projeto-nome').value.trim();
       const area = document.getElementById('projeto-area').value.trim();
       const status = document.getElementById('projeto-status').value;
@@ -997,7 +1200,8 @@
           area,
           status,
           prazo,
-          meta_principal
+          meta_principal,
+          user_id: currentUser.id
         }]);
 
         if (error) throw error;
@@ -1033,8 +1237,9 @@
       }
     }
 
-    // ==================== 6. MÓDULO: ESTUDOS & EVOLUÇÃO ====================
+    // ==================== MÓDULO 4: ESTUDOS & EVOLUÇÃO ====================
     async function carregarEstudos() {
+      if (!currentUser) return;
       const container = document.getElementById('lista-estudos');
       try {
         const { data, error } = await db
@@ -1047,7 +1252,7 @@
         if (!data || data.length === 0) {
           container.innerHTML = `
             <div class="col-span-full text-center py-12 text-zinc-500 text-xs border border-dashed border-obsidian-800 rounded-2xl">
-              Nenhum tópico de estudo cadastrado. Adicione seu foco de aprendizado ao lado.
+              Nenhum tópico cadastrado. Adicione seu foco de aprendizado ao lado.
             </div>
           `;
           return;
@@ -1099,6 +1304,7 @@
 
     async function adicionarEstudo(e) {
       e.preventDefault();
+      if (!currentUser) return;
       const topico = document.getElementById('estudo-topico').value.trim();
       const categoria = document.getElementById('estudo-categoria').value.trim();
       const progresso_pct = parseInt(document.getElementById('estudo-progresso').value) || 0;
@@ -1111,7 +1317,8 @@
           topico,
           categoria,
           progresso_pct,
-          anotacao
+          anotacao,
+          user_id: currentUser.id
         }]);
 
         if (error) throw error;
@@ -1128,10 +1335,10 @@
       try {
         const { error } = await db.from('lifeos_estudos').update({ progresso_pct: parseInt(progresso_pct) }).eq('id', id);
         if (error) throw error;
-        showToast(`Progresso atualizado para ${progresso_pct}%`);
+        showToast(`Progresso: ${progresso_pct}%`);
         carregarEstudos();
       } catch (err) {
-        showToast(`Erro ao atualizar progresso: ${err.message}`, 'error');
+        showToast(`Erro ao atualizar: ${err.message}`, 'error');
       }
     }
 
@@ -1146,7 +1353,7 @@
       }
     }
 
-    // ==================== 7. BOOTSTRAP INITIALIZATION ====================
+    // ==================== INITIALIZATION ====================
     window.addEventListener('DOMContentLoaded', () => {
       // Exibir data formatada
       const dateEl = document.getElementById('current-date-display');
@@ -1158,8 +1365,8 @@
         day: 'numeric' 
       });
 
-      // Carregar dados iniciais da Tab padrão
-      refreshCurrentTab();
+      // Iniciar listener de autenticação
+      setupAuthListener();
     });
   </script>
 </body>
